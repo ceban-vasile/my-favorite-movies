@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import Dashboard from './components/dashboard/Dashboard';
+import MovieExplore from './components/dashboard/MovieExplore';
 import Navbar from './components/layout/Navbar';
 import './App.css';
 
@@ -19,11 +20,12 @@ function App() {
         <Routes>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
           <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/" />} />
+          <Route path="/explore" element={user ? <MovieExplore setUserMovies={() => {}} /> : <Navigate to="/login" />} />
           <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
         </Routes>
       </div>
     </div>
   );
-}
+};
 
 export default App;
