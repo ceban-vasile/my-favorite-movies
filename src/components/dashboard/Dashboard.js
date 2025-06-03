@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getUserMovies, searchMovies } from '../../services/movieService';
 import MovieList from './MovieList';
 import MovieForm from './MovieForm';
 import SearchFilter from './SearchFilter';
+import PopularMovies from './PopularMovies';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -37,14 +39,22 @@ const Dashboard = () => {
 
   return (
     <div className={`dashboard ${theme}`}>
+      {/* Show popular movies at the top */}
+      <PopularMovies setUserMovies={setMovies} />
+      
       <div className="dashboard-header">
         <h1>My Movie Collection</h1>
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? 'Cancel' : 'Add New Movie'}
-        </button>
+        <div className="dashboard-actions">
+          <Link to="/explore" className="btn btn-secondary explore-btn">
+            Explore All Movies
+          </Link>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? 'Cancel' : 'Add New Movie'}
+          </button>
+        </div>
       </div>
 
       {showForm && <MovieForm setMovies={setMovies} setShowForm={setShowForm} />}
