@@ -1,3 +1,55 @@
+# My Favorite Movies App
+
+A web application to manage your personal movie collection. Keep track of all the movies you've watched, mark your favorites, and filter through your collection with ease.
+
+## Features
+
+- **User Authentication**: Sign up and log in to access your personal movie collection
+- **Movie Management**: Add, remove, and mark movies as favorites
+- **Search & Filter**: Easily find movies by title or director, and filter by favorites
+- **Responsive Design**: Works on desktop and mobile devices
+- **Theme Support**: Switch between light and dark themes based on your preference
+
+## User Flows
+
+### Authentication Flow
+1. New users can sign up with name, email, and password
+2. Existing users can log in with email and password
+3. Users stay logged in between sessions unless they explicitly log out
+
+### Movie Management Flow
+1. From the dashboard, users can add new movies to their collection
+2. For each movie, users can enter:
+   - Title (required)
+   - Release year
+   - Director (required)
+   - Movie poster URL
+   - Genres (multiple selections)
+   - Personal notes
+3. Users can mark movies as favorites by clicking the star icon
+4. Movies can be deleted from the collection
+
+### Browsing Flow
+1. All movies are displayed in a grid layout on the dashboard
+2. Users can search for movies by title or director
+3. Users can filter to show all movies or only favorites
+4. The theme toggle in the navbar allows switching between light and dark modes
+
+## Technical Details
+
+- Built with React
+- User data and movies stored in browser localStorage
+- Theme preference persists between sessions
+- Responsive design using CSS Grid and Flexbox
+
+## Future Improvements
+
+- Movie recommendation engine
+- Import movies from external APIs
+- Share movie collections with friends
+- Rating system for movies
+- Watch history tracking
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
