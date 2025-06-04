@@ -5,6 +5,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
     
     private final UserRepository userRepository;
@@ -58,7 +60,12 @@ public class AuthController {
         
         userRepository.save(user);
         
-        String jwt = jwtService.generateToken(user);
+        // Create claims with user information
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        
+        // Generate token with username and claims
+        String jwt = jwtService.generateToken(claims, user.getUsername());
         
         Map<String, Object> response = new HashMap<>();
         response.put("token", jwt);
@@ -77,7 +84,13 @@ public class AuthController {
         );
         
         User user = (User) authentication.getPrincipal();
-        String jwt = jwtService.generateToken(user);
+        
+        // Create claims with user information
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        
+        // Generate token with username and claims
+        String jwt = jwtService.generateToken(claims, user.getUsername());
         
         Map<String, Object> response = new HashMap<>();
         response.put("token", jwt);

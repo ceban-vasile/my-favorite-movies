@@ -21,6 +21,8 @@ public class Movie {
     private Integer year;
     private String posterUrl;
     private String description;
+    private String director;
+    private Double rating;
     
     @ManyToOne
     @JoinColumn(name = "user_id")

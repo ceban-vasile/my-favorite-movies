@@ -8,9 +8,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
-    Page<Movie> findByTitleContainingIgnoreCase(String title, Pageable pageable);
     List<Movie> findAllByUser(User user);
+    
+    Page<Movie> findByTitleContainingIgnoreCaseAndUser(String title, User user, Pageable pageable);
+    
+    Page<Movie> findByUser(User user, Pageable pageable);
+    
+    Page<Movie> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+    
+    Optional<Movie> findByIdAndUser(Long id, User user);
 }
