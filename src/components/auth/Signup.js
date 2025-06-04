@@ -1,123 +1,100 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import './Auth.css';
 
-const Signup = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
+function Signup() {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const { signup } = useAuth();
-  const { theme } = useTheme();
+  const [loading, setLoading] = useState(false);
+  
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.password) {
-      setError('All fields are required');
-      return;
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setError('Passwords do not match');
-      return;
-    }
-    
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setLoading(false);
       return;
     }
 
-    const success = signup(formData);
-    if (!success) {
-      setError('Email already in use');
+    try {
+      const result = await register(username, email, password);
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError('Failed to register. Please try again.');
     }
+    
+    setLoading(false);
   };
 
   return (
-    <div className={`auth-container ${theme}`}>
+    <div className="auth-container">
       <div className="auth-card">
-        <h2>Create Account</h2>
+        <h2>Sign Up</h2>
         {error && <div className="error-message">{error}</div>}
-        
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name">Name</label>
+            <label>Username</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              className="form-control"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
             />
           </div>
-          
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label>Email</label>
             <input
               type="email"
-              id="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
-          
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
               type="password"
-              id="password"
-              name="password"
-              className="form-control"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
-          
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label>Confirm Password</label>
             <input
               type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              className="form-control"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
             />
           </div>
-          
-          <button type="submit" className="btn btn-primary w-100">
-            Sign Up
+          <button 
+            type="submit" 
+            className="auth-button"
+            disabled={loading}
+          >
+            {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
-        
-        <p className="auth-redirect">
-          Already have an account? <Link to="/login">Log In</Link>
+        <p>
+          Already have an account? <Link to="/login">Login</Link>
         </p>
       </div>
     </div>
   );
-};
+}
 
 export default Signup;

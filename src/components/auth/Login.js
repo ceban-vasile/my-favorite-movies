@@ -1,85 +1,80 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import './Auth.css';
 
-const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  
   const { login } = useAuth();
-  const { theme } = useTheme();
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
-    // Basic validation
-    if (!formData.email || !formData.password) {
-      setError('All fields are required');
+    if (!username || !password) {
+      setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
 
-    const success = login(formData);
-    if (!success) {
-      setError('Invalid email or password');
+    try {
+      const result = await login(username, password);
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError('Failed to login. Please try again.');
     }
+    
+    setLoading(false);
   };
 
   return (
-    <div className={`auth-container ${theme}`}>
+    <div className="auth-container">
       <div className="auth-card">
-        <h2>Log In</h2>
+        <h2>Login</h2>
         {error && <div className="error-message">{error}</div>}
-        
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label>Username</label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
             />
           </div>
-          
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
               type="password"
-              id="password"
-              name="password"
-              className="form-control"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
-          
-          <button type="submit" className="btn btn-primary w-100">
-            Log In
+          <button 
+            type="submit" 
+            className="auth-button"
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        
-        <p className="auth-redirect">
+        <p>
           Don't have an account? <Link to="/signup">Sign Up</Link>
         </p>
       </div>
     </div>
   );
-};
+}
 
 export default Login;

@@ -1,79 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
-import { getUserMovies, searchMovies } from '../../services/movieService';
-import MovieList from './MovieList';
-import MovieForm from './MovieForm';
-import SearchFilter from './SearchFilter';
-import PopularMovies from './PopularMovies';
+import { movieService } from '../../services/api';
+import MovieCard from './MovieCard';
 import './Dashboard.css';
 
-const Dashboard = () => {
-  const { user } = useAuth();
-  const { theme } = useTheme();
+function Dashboard() {
   const [movies, setMovies] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Load movies on component mount
   useEffect(() => {
-    if (user) {
-      const userMovies = getUserMovies(user.id);
-      setMovies(userMovies);
+    const fetchMovies = async () => {
+      try {
+        const data = await movieService.getUserMovies();
+        setMovies(data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load movies. Please try again later.');
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  const handleRemoveMovie = async (id) => {
+    try {
+      await movieService.deleteMovie(id);
+      setMovies(movies.filter(movie => movie.id !== id));
+    } catch (error) {
+      setError('Failed to remove movie. Please try again.');
     }
-  }, [user]);
-
-  // Handle search and filter
-  const handleSearch = (query) => {
-    setSearchQuery(query);
   };
 
-  const handleFilter = (filter) => {
-    setActiveFilter(filter);
-  };
-
-  // Get filtered movies
-  const filteredMovies = searchMovies(user?.id, searchQuery, activeFilter);
+  if (loading) {
+    return <div className="dashboard-loading">Loading...</div>;
+  }
 
   return (
-    <div className={`dashboard ${theme}`}>
-      {/* Show popular movies at the top */}
-      <PopularMovies setUserMovies={setMovies} />
-      
+    <div className="dashboard">
       <div className="dashboard-header">
-        <h1>My Movie Collection</h1>
-        <div className="dashboard-actions">
-          <Link to="/explore" className="btn btn-secondary explore-btn">
-            Explore All Movies
-          </Link>
-          <button 
-            className="btn btn-primary" 
-            onClick={() => setShowForm(!showForm)}
-          >
-            {showForm ? 'Cancel' : 'Add New Movie'}
-          </button>
-        </div>
+        <h1>My Favorite Movies</h1>
+        <Link to="/explore" className="explore-button">
+          Explore Movies
+        </Link>
       </div>
-
-      {showForm && <MovieForm setMovies={setMovies} setShowForm={setShowForm} />}
-
-      <SearchFilter 
-        onSearch={handleSearch} 
-        onFilter={handleFilter} 
-        activeFilter={activeFilter} 
-      />
-
-      {filteredMovies.length > 0 ? (
-        <MovieList movies={filteredMovies} setMovies={setMovies} />
+      
+      {error && <div className="error-message">{error}</div>}
+      
+      {movies.length === 0 ? (
+        <div className="no-movies">
+          <p>You haven't added any favorite movies yet.</p>
+          <Link to="/explore" className="explore-button">
+            Start Exploring Movies
+          </Link>
+        </div>
       ) : (
-        <div className="no-movies-message">
-          <p>No movies found. Add some to your collection!</p>
+        <div className="movie-grid">
+          {movies.map((movie) => (
+            <MovieCard 
+              key={movie.id} 
+              movie={movie} 
+              onRemove={() => handleRemoveMovie(movie.id)} 
+              isFavorite={true}
+            />
+          ))}
         </div>
       )}
     </div>
   );
-};
+}
 
 export default Dashboard;
