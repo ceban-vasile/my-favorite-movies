@@ -1,49 +1,80 @@
-import axios from 'axios';
+// Create a service using fetch instead of axios to handle API calls
 
 const API_URL = 'http://localhost:8080/api';
 
-// Create axios instance
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
+// Helper function to handle API requests
+const apiRequest = async (url, options = {}) => {
+  // Add Authorization header if token exists
+  const token = localStorage.getItem('token');
+  const headers = {
     'Content-Type': 'application/json',
-  },
-});
+    ...options.headers
+  };
 
-// Add request interceptor to add authorization header
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const config = {
+    ...options,
+    headers
+  };
+
+  try {
+    const response = await fetch(`${API_URL}${url}`, config);
+    
+    // Handle non-2xx responses
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Request failed with status ${response.status}`);
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+    
+    // Check if the response has content
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    }
+    
+    return {};
+    
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
+  }
+};
 
 // Auth services
 export const authService = {
   login: async (username, password) => {
-    const response = await api.post('/auth/login', { username, password });
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    const data = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+    
+    if (data.token) {
+      localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
-        username: response.data.username
+        username: data.username
       }));
     }
-    return response.data;
+    
+    return data;
   },
   
   register: async (username, email, password) => {
-    const response = await api.post('/auth/register', { username, email, password });
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    const data = await apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ username, email, password })
+    });
+    
+    if (data.token) {
+      localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
-        username: response.data.username
+        username: data.username
       }));
     }
-    return response.data;
+    
+    return data;
   },
   
   logout: () => {
@@ -60,19 +91,20 @@ export const authService = {
 // Movie services
 export const movieService = {
   getUserMovies: async () => {
-    const response = await api.get('/movies');
-    return response.data;
+    return apiRequest('/movies', { method: 'GET' });
   },
   
   addMovie: async (movieData) => {
-    const response = await api.post('/movies', movieData);
-    return response.data;
+    return apiRequest('/movies', {
+      method: 'POST',
+      body: JSON.stringify(movieData)
+    });
   },
   
   deleteMovie: async (id) => {
-    await api.delete(`/movies/${id}`);
+    await apiRequest(`/movies/${id}`, { method: 'DELETE' });
     return id;
   },
 };
 
-export default api;
+export default { authService, movieService };
