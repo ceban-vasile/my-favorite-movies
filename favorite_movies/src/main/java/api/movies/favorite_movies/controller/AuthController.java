@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import api.movies.favorite_movies.model.User;
 import api.movies.favorite_movies.repository.UserRepository;
 import api.movies.favorite_movies.security.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:3000")
+@Tag(name = "Authentication", description = "Authentication API")
 public class AuthController {
     
     private final UserRepository userRepository;
@@ -40,6 +47,15 @@ public class AuthController {
         this.authManager = authManager;
     }
     
+    @Operation(summary = "Register a new user", description = "Creates a new user account")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User registered successfully", 
+                     content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", description = "Invalid input or username already exists", 
+                     content = @Content),
+        @ApiResponse(responseCode = "500", description = "Internal server error", 
+                     content = @Content)
+    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         // Check if username or email already exists
@@ -74,6 +90,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
     
+    @Operation(summary = "Log in", description = "Authenticate user and return JWT token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login successful", 
+                     content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials", 
+                     content = @Content),
+        @ApiResponse(responseCode = "500", description = "Internal server error", 
+                     content = @Content)
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Authentication authentication = authManager.authenticate(

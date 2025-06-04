@@ -13,9 +13,19 @@ import api.movies.favorite_movies.model.Movie;
 import api.movies.favorite_movies.model.User;
 import api.movies.favorite_movies.repository.MovieRepository;
 import api.movies.favorite_movies.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping("/api/movies")
+@Tag(name = "Movies", description = "Movie management API")
+@SecurityRequirement(name = "Bearer Authentication")
 public class MovieController {
     
     private final MovieRepository movieRepository;
@@ -26,6 +36,14 @@ public class MovieController {
         this.userRepository = userRepository;
     }
     
+    @Operation(summary = "Get all movies", description = "Returns all movies for the authenticated user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "List of movies retrieved", 
+                content = @Content(mediaType = "application/json", 
+                array = @ArraySchema(schema = @Schema(implementation = Movie.class)))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized", 
+                content = @Content)
+    })
     @GetMapping
     public ResponseEntity<Page<Movie>> getUserMovies(
             Principal principal,
@@ -48,6 +66,16 @@ public class MovieController {
         }
     }
     
+    @Operation(summary = "Get movie by ID", description = "Returns a movie by its ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Movie found", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = Movie.class))),
+        @ApiResponse(responseCode = "404", description = "Movie not found", 
+                content = @Content),
+        @ApiResponse(responseCode = "401", description = "Unauthorized", 
+                content = @Content)
+    })
     @GetMapping("/{id}")
     public ResponseEntity<Movie> getMovieById(@PathVariable Long id, Principal principal) {
         User user = userRepository.findByUsername(principal.getName())
@@ -62,6 +90,16 @@ public class MovieController {
         return ResponseEntity.ok(movieOpt.get());
     }
     
+    @Operation(summary = "Create new movie", description = "Adds a new movie to the user's collection")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Movie created", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = Movie.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input", 
+                content = @Content),
+        @ApiResponse(responseCode = "401", description = "Unauthorized", 
+                content = @Content)
+    })
     @PostMapping
     public ResponseEntity<Movie> addMovie(@RequestBody Movie movie, Principal principal) {
         User user = userRepository.findByUsername(principal.getName())
@@ -73,6 +111,16 @@ public class MovieController {
         return ResponseEntity.ok(savedMovie);
     }
     
+    @Operation(summary = "Update movie", description = "Updates an existing movie")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Movie updated", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = Movie.class))),
+        @ApiResponse(responseCode = "404", description = "Movie not found", 
+                content = @Content),
+        @ApiResponse(responseCode = "401", description = "Unauthorized", 
+                content = @Content)
+    })
     @PutMapping("/{id}")
     public ResponseEntity<Movie> updateMovie(@PathVariable Long id, @RequestBody Movie movieDetails, Principal principal) {
         User user = userRepository.findByUsername(principal.getName())
@@ -97,6 +145,15 @@ public class MovieController {
         return ResponseEntity.ok(updatedMovie);
     }
     
+    @Operation(summary = "Delete movie", description = "Deletes a movie by ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Movie deleted", 
+                content = @Content),
+        @ApiResponse(responseCode = "404", description = "Movie not found", 
+                content = @Content),
+        @ApiResponse(responseCode = "401", description = "Unauthorized", 
+                content = @Content)
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMovie(@PathVariable Long id, Principal principal) {
         User user = userRepository.findByUsername(principal.getName())
