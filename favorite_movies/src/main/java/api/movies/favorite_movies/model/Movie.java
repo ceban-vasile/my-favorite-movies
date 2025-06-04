@@ -16,13 +16,13 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
     private String title;
-    
-    private String director;
-    private Integer year;
     private String genre;
+    private Integer year;
     private String posterUrl;
     private String description;
-    private Double rating;
+    
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
