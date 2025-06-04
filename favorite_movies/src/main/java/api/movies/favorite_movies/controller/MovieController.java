@@ -1,4 +1,4 @@
-package api.movies.favorite_movies.controller;
+package main.java.api.movies.favorite_movies.controller;
 
 import api.movies.favorite_movies.dto.MovieDto;
 import api.movies.favorite_movies.model.Movie;

@@ -1,6 +1,5 @@
 package api.movies.favorite_movies.security;
 
-import api.movies.favorite_movies.model.Permission;
 import api.movies.favorite_movies.model.User;
 import api.movies.favorite_movies.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,11 +29,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         
         // Add role-based authority
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
         
         // Add permission-based authorities
         authorities.addAll(user.getPermissions().stream()
-                .map(permission -> new SimpleGrantedAuthority("PERMISSION_" + permission.name()))
+                .map(permission -> new SimpleGrantedAuthority("PERMISSION_" + permission))
                 .collect(Collectors.toList()));
         
         return new org.springframework.security.core.userdetails.User(
