@@ -1,83 +1,65 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/api';
 
 const AuthContext = createContext();
-
-export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Check if user is logged in on app load
+    const initAuth = async () => {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      }
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
-  const login = (userData) => {
-    // Get users from localStorage
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const foundUser = users.find(u => 
-      u.email === userData.email && u.password === userData.password
-    );
-    
-    if (foundUser) {
-      const authenticatedUser = {
-        id: foundUser.id,
-        name: foundUser.name,
-        email: foundUser.email
+  const login = async (username, password) => {
+    try {
+      const response = await authService.login(username, password);
+      setUser({ username: response.username });
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data || 'Login failed. Please try again.'
       };
-      setUser(authenticatedUser);
-      localStorage.setItem('user', JSON.stringify(authenticatedUser));
-      return true;
     }
-    return false;
   };
 
-  const signup = (userData) => {
-    // Get existing users
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    
-    // Check if user already exists
-    if (users.some(u => u.email === userData.email)) {
-      return false;
+  const register = async (username, email, password) => {
+    try {
+      const response = await authService.register(username, email, password);
+      setUser({ username: response.username });
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data || 'Registration failed. Please try again.'
+      };
     }
-    
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      name: userData.name,
-      email: userData.email,
-      password: userData.password,
-    };
-    
-    // Save user to localStorage
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    // Log in the user
-    const authenticatedUser = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email
-    };
-    setUser(authenticatedUser);
-    localStorage.setItem('user', JSON.stringify(authenticatedUser));
-    
-    return true;
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    logout
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export const useAuth = () => useContext(AuthContext);
